@@ -1,0 +1,10 @@
+flask
+flask-sqlalchemy
+flask-login
+python-dotenv
+requests
+rapidfuzz
+gnani-vachana
+boto3
+psycopg[binary]
+gunicorn
