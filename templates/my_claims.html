@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}My Claims — KhojSetu{% endblock %}
+{% block page_title %}My Claims{% endblock %}
+
+{% block content %}
+    <div class="container reveal">
+        <header style="margin-bottom:var(--space-12);" class="reveal">
+            <span class="eyebrow">Claims</span>
+            <h1>My Claims</h1>
+            <p style="color:var(--color-gray-600);">Track claims you submitted and respond to claims on items you found.</p>
+        </header>
+
+        {% if claims %}
+            <div class="reveal-group">
+                {% for claim in claims %}
+                    <div class="card reveal" style="margin-bottom:var(--space-8);">
+                        <div class="card__body">
+                            <div style="display:flex;justify-content:between;align-items:flex-start;gap:var(--space-4);margin-bottom:var(--space-4);">
+                                <span class="tag tag--pending {% if claim.status == 'Accepted' %}tag--approved{% elif claim.status == 'Rejected' %}tag--danger{% endif %}">
+                                    {{ claim.status }}
+                                </span>
+                                <h3 style="font-size:var(--fs-lg);">{{ claim.lost_item_name }} / {{ claim.found_item_name }}</h3>
+                            </div>
+
+                            <div class="report-card__meta" style="margin-bottom:var(--space-6);">
+                                <span><strong>Lost:</strong> {{ claim.lost_location }}</span>
+                                <span><strong>Found:</strong> {{ claim.found_location }}</span>
+                                <span><strong>Submitted by:</strong> {{ claim.claimant_name or "User" }}</span>
+                                <span><strong>Finder:</strong> {{ claim.finder_name or "User" }}</span>
+                            </div>
+
+                            <h4 style="font-size:var(--fs-sm);text-transform:uppercase;letter-spacing:0.1em;color:var(--color-gray-600);margin-bottom:var(--space-3);">Ownership Details</h4>
+                            <div class="details">{{ claim.ownership_details }}</div>
+                            <p style="color:var(--color-gray-600);font-size:var(--fs-xs);margin-top:var(--space-4);">Submitted: {{ claim.created_at }}</p>
+
+                            {% if claim.finder_id == session.get("user_id") and claim.status == "Pending" %}
+                                <div class="form-actions" style="margin-top:var(--space-6);">
+                                    <form method="POST" action="{{ url_for('decide_claim', claim_id=claim.id) }}" style="display:inline;">
+                                        <input type="hidden" name="decision" value="Accepted">
+                                        <button type="submit" class="btn btn--secondary" style="background:var(--color-success);color:var(--color-white);border:none;padding:var(--space-3)var(--space-8);">Accept</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('decide_claim', claim_id=claim.id) }}" style="display:inline;">
+                                        <input type="hidden" name="decision" value="Rejected">
+                                        <button type="submit" class="btn btn--secondary" style="background:var(--color-danger);color:var(--color-white);border:none;padding:var(--space-3)var(--space-8);margin-left:var(--space-3);">Reject</button>
+                                    </form>
+                                </div>
+                            {% elif claim.claimant_id == session.get("user_id") %}
+                                <p style="color:var(--color-gray-600);font-size:var(--fs-sm);margin-top:var(--space-6);">You submitted this claim. The finder will review it.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state reveal">
+                <h2>No claims yet</h2>
+                <p>Claims you submit or receive will appear here.</p>
+                <a href="{{ url_for('home') }}" class="btn btn--ghost">Back to Home</a>
+            </div>
+        {% endif %}
+
+        <div style="margin-top:var(--space-16);display:flex;gap:var(--space-4);justify-content:center;" class="reveal">
+            <a href="{{ url_for('my_reports') }}" class="btn btn--ghost">My Reports</a>
+            <a href="{{ url_for('home') }}" class="btn btn--ghost">Home</a>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Match Details — KhojSetu{% endblock %}
+{% block page_title %}Match Details{% endblock %}
+
+{% block content %}
+    <div class="container reveal">
+        <header style="max-width:800px;margin:0 auto var(--space-12);" class="reveal">
+            <span class="eyebrow">Possible match</span>
+            <h1>Match Details</h1>
+            <p style="color:var(--color-gray-600);">Review the match and verify ownership before proceeding.</p>
+        </header>
+
+        <!-- Score Badge -->
+        <div class="match-score-badge reveal">{{ score }}%</div>
+
+        <p style="text-align:center;color:var(--color-gray-600);max-width:600px;margin:0 auto var(--space-16);" class="reveal">
+            This score indicates similarity between the reports. It does not prove ownership.
+        </p>
+
+        <!-- Photos -->
+        <div class="match-photos reveal-group">
+            <div class="match-photo reveal" style="position:relative;">
+                {% if original.image_path %}
+                    <img src="{{ image_url(original.image_path) }}" alt="Your reported item">
+                {% else %}
+                    <div style="width:100%;height:100%;background:var(--color-gray-100);display:flex;align-items:center;justify-content:center;color:var(--color-gray-400);font-size:var(--fs-xs);">No Image</div>
+                {% endif %}
+                <span style="position:absolute;top:var(--space-3);left:var(--space-3);font-size:var(--fs-xs);font-weight:700;color:var(--color-black);background:rgba(255,255,255,0.8);padding:var(--space-1)var(--space-3);border-radius:var(--radius-full);">Your Report</span>
+            </div>
+            <div class="match-photo reveal" style="position:relative;">
+                {% if matched.image_path %}
+                    <img src="{{ image_url(matched.image_path) }}" alt="Possible matching item">
+                {% else %}
+                    <div style="width:100%;height:100%;background:var(--color-gray-100);display:flex;align-items:center;justify-content:center;color:var(--color-gray-400);font-size:var(--fs-xs);">No Image</div>
+                {% endif %}
+                <span style="position:absolute;top:var(--space-3);left:var(--space-3);font-size:var(--fs-xs);font-weight:700;color:var(--color-black);background:rgba(255,255,255,0.8);padding:var(--space-1)var(--space-3);border-radius:var(--radius-full);">Match</span>
+            </div>
+        </div>
+
+        <!-- Report Details Grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-12);margin-bottom:var(--space-16);" class="reveal-group">
+            <div class="card reveal">
+                <div class="card__body">
+                    <h3 style="font-size:var(--fs-lg);margin-bottom:var(--space-4);">Your Report</h3>
+                    <p><strong>Type:</strong> {{ original.report_type }}</p>
+                    <p><strong>Item:</strong> {{ original.item_name }}</p>
+                    <p><strong>Description:</strong> {{ original.description }}</p>
+                    <p><strong>Category:</strong> {{ original.category }}</p>
+                    <p><strong>Location:</strong> {{ original.location }}</p>
+                    <p><strong>Date:</strong> {{ original.date }}</p>
+                </div>
+            </div>
+            <div class="card reveal">
+                <div class="card__body">
+                    <h3 style="font-size:var(--fs-lg);margin-bottom:var(--space-4);">Possible Match</h3>
+                    <p><strong>Type:</strong> {{ matched.report_type }}</p>
+                    <p><strong>Item:</strong> {{ matched.item_name }}</p>
+                    <p><strong>Description:</strong> {{ matched.description }}</p>
+                    <p><strong>Category:</strong> {{ matched.category }}</p>
+                    <p><strong>Location:</strong> {{ matched.location }}</p>
+                    <p><strong>Date:</strong> {{ matched.date }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TTS Section -->
+        <div class="card tts-card reveal" style="margin-bottom:var(--space-16);">
+            <div class="card__body">
+                <h3 style="margin-bottom:var(--space-4);">Listen to Match Update</h3>
+                <p style="color:var(--color-gray-600);font-size:var(--fs-sm);margin-bottom:var(--space-6);">Choose a language and hear the match summary.</p>
+
+                <div class="tts-controls">
+                    <select id="ttsLanguage" class="tts-select">
+                        <option value="hi-IN">Hindi</option>
+                        <option value="en-IN">English</option>
+                    </select>
+                    <button type="button" id="speakButton" class="tts-btn">🔊 Listen</button>
+                </div>
+                <p id="tts-status" style="font-size:var(--fs-sm);color:var(--color-gray-600);min-height:var(--space-6);"></p>
+                <audio id="tts-audio" controls hidden style="border-radius:var(--radius-md);"></audio>
+            </div>
+        </div>
+
+        <!-- Claim Section -->
+        <div class="card reveal" style="max-width:600px;margin:0 auto var(--space-16);">
+            <div class="card__body">
+                <h3 style="margin-bottom:var(--space-4);">Claim This Item</h3>
+                <p style="color:var(--color-gray-600);font-size:var(--fs-sm);margin-bottom:var(--space-6);">If this match relates to your lost item, provide ownership details.</p>
+
+                {% if original.report_type == "lost" and matched.report_type == "found" and original.owner_id == session.get("user_id") %}
+                    <form class="claim-form" method="POST" action="{{ url_for('submit_claim', lost_report_id=original.id, found_report_id=matched.id) }}">
+                        <label class="form-label">How can you prove this item belongs to you?</label>
+                        <textarea name="ownership_details" class="form-textarea" minlength="10" maxlength="1000" required placeholder="Describe unique identifying details not visible in the public report..." rows="4"></textarea>
+                        <p class="claim-note">Do not share passwords, payment details, or sensitive personal information.</p>
+                        <button type="submit" class="btn btn--primary" style="width:auto;padding:var(--space-3)var(--space-8);font-size:var(--fs-base);">Submit Claim</button>
+                    </form>
+                {% elif original.report_type == "found" and matched.report_type == "lost" and matched.owner_id == session.get("user_id") %}
+                    <form class="claim-form" method="POST" action="{{ url_for('submit_claim', lost_report_id=matched.id, found_report_id=original.id) }}">
+                        <label class="form-label">How can you prove this item belongs to you?</label>
+                        <textarea name="ownership_details" class="form-textarea" minlength="10" maxlength="1000" required placeholder="Describe unique identifying details not visible in the public report..." rows="4"></textarea>
+                        <p class="claim-note">Do not share passwords, payment details, or sensitive personal information.</p>
+                        <button type="submit" class="btn btn--primary" style="width:auto;padding:var(--space-3)var(--space-8);font-size:var(--fs-base);">Submit Claim</button>
+                    </form>
+                {% else %}
+                    <p style="color:var(--color-gray-600);font-size:var(--fs-sm);">Only the owner of the approved lost-item report can submit an ownership claim for this match.</p>
+                {% endif %}
+
+                <p style="margin-top:var(--space-6);text-align:center;">
+                    <a href="{{ url_for('my_claims') }}" style="color:var(--color-black);font-weight:600;font-size:var(--fs-sm);">View My Claims →</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Warning -->
+        <div class="card reveal" style="max-width:800px;margin:0 auto;background:#fef3c7;border-color:#fcd34d;">
+            <div class="card__body" style="padding:var(--space-6);">
+                <h4 style="font-size:var(--fs-sm);color:#92400e;margin-bottom:var(--space-2);">Important: Verify Ownership</h4>
+                <p style="color:#78350f;font-size:var(--fs-sm);margin:0;">Do not hand over an item based only on the match score. Verify ownership before returning the item.</p>
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-top:var(--space-16);" class="reveal">
+            <a href="{{ url_for('reports') }}" class="btn btn--ghost">View All Reports</a>
+            <a href="{{ url_for('home') }}" class="btn btn--ghost">Back to Home</a>
+        </div>
+    </div>
+
+    <!-- Data for TTS -->
+    <div id="matchData"
+         data-score="{{ score }}"
+         data-original-item="{{ original.item_name }}"
+         data-matched-item="{{ matched.item_name }}"
+         data-matched-location="{{ matched.location }}"
+         hidden></div>
+
+    <script>
+        initTTS("speakButton", "ttsLanguage", "ttsStatus", "ttsAudio", "matchData");
+    </script>
+{% endblock %}

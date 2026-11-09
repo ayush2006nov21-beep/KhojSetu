@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}My Reports — KhojSetu{% endblock %}
+{% block page_title %}My Reports{% endblock %}
+
+{% block content %}
+    <div class="container reveal">
+        <header style="margin-bottom:var(--space-12);" class="reveal">
+            <span class="eyebrow">Your reports</span>
+            <h1>My Reports</h1>
+            <p style="color:var(--color-gray-600);">Manage your submitted lost and found items.</p>
+        </header>
+
+        {% if dashboard_reports %}
+            <div class="grid-reports reveal-group">
+                {% for entry in dashboard_reports %}
+                    {% set item = entry.report %}
+                    <div class="report-card card reveal">
+                        <div class="report-card__image">
+                            {% if item.image_path %}
+                            <img src="{{ image_url(item.image_path) }}" alt="{{ item.item_name }}">
+                            {% else %}
+                                <div style="width:100%;height:100%;background:var(--color-gray-100);display:flex;align-items:center;justify-content:center;color:var(--color-gray-400);font-size:var(--fs-xs);">No Image</div>
+                            {% endif %}
+                            <span class="report-card__badge {{ item.report_type }}">{{ item.report_type|upper }}</span>
+                            <span class="tag tag--pending" style="position:absolute;top:var(--space-3);right:var(--space-3);font-size:var(--fs-xs);">{{ item.status }}</span>
+                        </div>
+                        <div class="report-card__content">
+                            <div class="report-card__meta">
+                                <span>{{ item.category }}</span>
+                                <span>{{ item.location }}</span>
+                                <span>{{ item.date }}</span>
+                            </div>
+                            <h4 class="report-card__title">{{ item.item_name }}</h4>
+                            <p class="report-card__description">{{ item.description }}</p>
+
+                            <form method="POST" action="{{ url_for('update_report_status', report_id=item.id) }}" style="margin-top:auto;">
+                                <label class="form-label" style="font-size:var(--fs-xs);margin-bottom:var(--space-2);">Update status</label>
+                                <select name="status" class="form-select" style="width:100%;padding:var(--space-2)var(--space-3);font-size:var(--fs-xs);">
+                                    {% if item.report_type == "lost" %}
+                                        <option value="Open" {% if item.status == "Open" %}selected{% endif %}>Open</option>
+                                        <option value="Found" {% if item.status == "Found" %}selected{% endif %}>Found</option>
+                                        <option value="Closed" {% if item.status == "Closed" %}selected{% endif %}>Closed</option>
+                                    {% else %}
+                                        <option value="Open" {% if item.status == "Open" %}selected{% endif %}>Open</option>
+                                        <option value="Returned" {% if item.status == "Returned" %}selected{% endif %}>Returned</option>
+                                        <option value="Closed" {% if item.status == "Closed" %}selected{% endif %}>Closed</option>
+                                    {% endif %}
+                                </select>
+                                <button type="submit" class="btn btn--secondary" style="margin-top:var(--space-3);width:auto;padding:var(--space-2)var(--space-6);font-size:var(--fs-sm);">Save</button>
+                            </form>
+
+                            {% if item.verification_status == "Pending" %}
+                                <div style="margin-top:var(--space-6);padding:var(--space-4);background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;color:#9a3412;">
+                                    <strong>Awaiting admin approval</strong>
+                                    <p style="margin-top:6px;font-size:var(--fs-sm);">Your report is saved. KhojSetu will compare it with approved opposite-type reports after an admin approves it.</p>
+                                </div>
+                            {% elif item.verification_status == "Rejected" %}
+                                <div style="margin-top:var(--space-6);padding:var(--space-4);background:#fef2f2;border:1px solid #fecaca;border-radius:12px;color:#991b1b;">
+                                    <strong>Report not approved</strong>
+                                    <p style="margin-top:6px;font-size:var(--fs-sm);">This report is not included in matching. Contact the administrator if you need help.</p>
+                                </div>
+                            {% elif entry.matches %}
+                                <div style="margin-top:var(--space-6);padding-top:var(--space-6);border-top:1px solid var(--color-gray-100);">
+                                    <h4 style="font-size:var(--fs-sm);text-transform:uppercase;letter-spacing:0.1em;color:var(--color-gray-600);margin-bottom:var(--space-4);">Possible matches</h4>
+                                    {% for match in entry.matches %}
+                                        <a href="{{ url_for('match_details', report_id=item.id, match_id=match.id) }}" style="display:flex;align-items:center;gap:var(--space-4);padding:var(--space-3);background:var(--color-gray-50);border-radius:var(--radius-md);margin-bottom:var(--space-3);text-decoration:none;color:inherit;">
+                                            <span style="font-size:var(--fs-xs);font-weight:700;color:var(--color-accent);">{{ match.match_score }}%</span>
+                                            <span style="flex:1;font-size:var(--fs-sm);">{{ match.item_name }}</span>
+                                            <span style="font-size:var(--fs-xs);">→</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% elif item.verification_status == "Approved" %}
+                                <div style="margin-top:var(--space-6);padding:var(--space-4);background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;color:#1e40af;">
+                                    <strong>No possible matches yet</strong>
+                                    <p style="margin-top:6px;font-size:var(--fs-sm);">Your report is approved. Matching will update automatically when a relevant opposite-type report is approved and open.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state reveal">
+                <h2>No reports yet</h2>
+                <p>Your submitted reports will appear here.</p>
+                <a href="{{ url_for('report', report_type='lost') }}" class="btn btn--primary">Report a Lost Item</a>
+                <a href="{{ url_for('report', report_type='found') }}" class="btn btn--secondary" style="margin-left:var(--space-4);">Report a Found Item</a>
+            </div>
+        {% endif %}
+
+        <div style="margin-top:var(--space-16);display:flex;gap:var(--space-4);justify-content:center;flex-wrap:wrap;" class="reveal">
+            <a href="{{ url_for('report', report_type='lost') }}" class="btn btn--ghost">Report Lost Item</a>
+            <a href="{{ url_for('report', report_type='found') }}" class="btn btn--ghost">Report Found Item</a>
+            <a href="{{ url_for('reports') }}" class="btn btn--ghost">View All Reports</a>
+            <a href="{{ url_for('home') }}" class="btn btn--ghost">Home</a>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — KhojSetu{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+    <div class="container reveal">
+        <header style="max-width:800px;margin:0 auto var(--space-12);" class="reveal">
+            <span class="eyebrow">Admin</span>
+            <h1>Admin Dashboard</h1>
+            <p style="color:var(--color-gray-600);">Review and verify submitted reports.</p>
+        </header>
+
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <div class="flash flash--success reveal" role="alert">
+                    <span>{{ message }}</span>
+                    <button class="flash__close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        {% if items %}
+            <div style="display:grid;grid-template-columns:1fr;gap:var(--space-8);" class="reveal-group">
+                {% for item in items %}
+                    <div class="card reveal">
+                        <div class="card__body">
+                            <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4);">
+                                <span class="report-card__badge {{ item.report_type }}">{{ item.report_type|upper }}</span>
+                                <span class="tag {% if item.verification_status == 'Approved' %}tag--approved{% elif item.verification_status == 'Rejected' %}tag--danger{% else %}tag--pending{% endif %}">
+                                    {{ item.verification_status or "Pending" }}
+                                </span>
+                                <span class="tag tag--pending">{{ item.status }}</span>
+                            </div>
+
+                            <h2 style="font-size:var(--fs-xl);margin-bottom:var(--space-4);">{{ item.item_name }}</h2>
+
+                            {% if item.image_path %}
+                                <img src="{{ image_url(item.image_path) }}" alt="{{ item.item_name }}" style="width:100%;height:200px;object-fit:cover;border-radius:var(--radius-lg);margin-bottom:var(--space-4);">
+                            {% else %}
+                                <div style="width:100%;height:200px;background:var(--color-gray-100);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;color:var(--color-gray-400);font-size:var(--fs-xs);margin-bottom:var(--space-4);">No Image</div>
+                            {% endif %}
+
+                            <p><strong>Description:</strong> {{ item.description }}</p>
+                            <p><strong>Category:</strong> {{ item.category }}</p>
+                            <p><strong>Location:</strong> {{ item.location }}</p>
+                            <p><strong>Date:</strong> {{ item.date }}</p>
+                            <p><strong>Submitted by:</strong> {{ item.username or "Unknown user" }}</p>
+                            <p><strong>Report ID:</strong> {{ item.id }}</p>
+
+                            <div style="display:flex;gap:var(--space-3);margin-top:var(--space-6);">
+                                <form method="POST" action="{{ url_for('update_verification', report_id=item.id) }}" style="flex:1;">
+                                    <input type="hidden" name="verification_status" value="Approved">
+                                    <button type="submit" class="btn btn--secondary" style="background:var(--color-success);color:var(--color-white);width:100%;padding:var(--space-3);">Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('update_verification', report_id=item.id) }}" style="flex:1;">
+                                    <input type="hidden" name="verification_status" value="Rejected">
+                                    <button type="submit" class="btn btn--secondary" style="background:var(--color-danger);color:var(--color-white);width:100%;padding:var(--space-3);">Reject</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('update_verification', report_id=item.id) }}" style="flex:1;">
+                                    <input type="hidden" name="verification_status" value="Pending">
+                                    <button type="submit" class="btn btn--ghost" style="width:100%;padding:var(--space-3);">Set Pending</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state reveal">
+                <h2>No reports to review</h2>
+                <p>All reports are up to date.</p>
+            </div>
+        {% endif %}
+
+        <div style="margin-top:var(--space-16);display:flex;gap:var(--space-4);justify-content:center;" class="reveal">
+            <a href="{{ url_for('home') }}" class="btn btn--ghost">Back to Home</a>
+            <a href="{{ url_for('reports') }}" class="btn btn--ghost">View Public Reports</a>
+        </div>
+    </div>
+{% endblock %}

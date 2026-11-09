@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account — KhojSetu{% endblock %}
+{% block page_title %}Create account{% endblock %}
+
+{% block content %}
+    <div class="container reveal">
+        <div class="form reveal" style="max-width:440px;margin:0 auto;">
+            <span class="eyebrow reveal">Join KhojSetu</span>
+            <h1 class="reveal">Create your account</h1>
+            <p style="color:var(--color-gray-600);margin-bottom:var(--space-8);" class="reveal">Get started with the community today.</p>
+
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}
+                    <div class="flash flash--success reveal" role="alert">
+                        <span>{{ message }}</span>
+                        <button class="flash__close" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endwith %}
+
+            <form method="POST" class="form">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" name="username" id="username" class="form-input" placeholder="johndoe" maxlength="50" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email address</label>
+                    <input type="email" name="email" id="email" class="form-input" placeholder="you@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" name="password" id="password" class="form-input" placeholder="••••••••" minlength="8" required>
+                    <p class="form-hint">Minimum 8 characters</p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary">Create account</button>
+                </div>
+            </form>
+
+            <p style="margin-top:var(--space-8);color:var(--color-gray-600);text-align:center;" class="reveal">
+                Already have an account?
+                <a href="{{ url_for('login') }}" style="color:var(--color-black);font-weight:600;">Sign in</a>
+            </p>
+            <p style="margin-top:var(--space-4);text-align:center;" class="reveal">
+                <a href="{{ url_for('home') }}" style="color:var(--color-gray-600);font-size:var(--fs-sm);">← Back to home</a>
+            </p>
+        </div>
+    </div>
+{% endblock %}

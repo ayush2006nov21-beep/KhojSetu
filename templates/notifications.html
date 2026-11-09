@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications — KhojSetu{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+    <div class="container reveal">
+        <header style="margin-bottom:var(--space-12);" class="reveal">
+            <span class="eyebrow">Notifications</span>
+            <h1>Notifications</h1>
+            <p style="color:var(--color-gray-600);">{{ unread_count }} unread</p>
+        </header>
+
+        {% if notifications %}
+            <div class="reveal-group">
+                {% for notification in notifications %}
+                    <div class="card reveal {% if not notification.is_read %}border-l-4 border-accent{% endif %}" style="margin-bottom:var(--space-6);border-left-width:4px;">
+                        <div class="card__body">
+                            <p style="margin-bottom:var(--space-4);">{{ notification.message }}</p>
+                            <p style="color:var(--color-gray-600);font-size:var(--fs-xs);margin-bottom:var(--space-4);">{{ notification.created_at }}</p>
+
+                            {% if not notification.is_read %}
+                                <form method="POST" action="{{ url_for('mark_notification_read', notification_id=notification.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn--ghost" style="font-size:var(--fs-xs);padding:var(--space-2)var(--space-4);">Mark as read</button>
+                                </form>
+                            {% else %}
+                                <span style="font-size:var(--fs-xs);color:var(--color-gray-600);">Read</span>
+                            {% endif %}
+
+                            {% if notification.claim_id %}
+                                <a href="{{ url_for('my_claims') }}" style="margin-top:var(--space-4);display:inline-block;color:var(--color-black);font-weight:600;font-size:var(--fs-sm);">View claim →</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state reveal">
+                <h2>No notifications</h2>
+                <p>You have no notifications yet.</p>
+                <a href="{{ url_for('home') }}" class="btn btn--ghost">Back to Home</a>
+            </div>
+        {% endif %}
+
+        <div style="margin-top:var(--space-16);display:flex;gap:var(--space-4);justify-content:center;" class="reveal">
+            <a href="{{ url_for('my_claims') }}" class="btn btn--ghost">My Claims</a>
+            <a href="{{ url_for('home') }}" class="btn btn--ghost">Home</a>
+        </div>
+    </div>
+{% endblock %}

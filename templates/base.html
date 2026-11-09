@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <title>{% block title %}KhojSetu{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    <div class="app-shell">
+
+        <!-- Mobile menu toggle (fixed on small screens) -->
+        <button class="mobile-menu-toggle" aria-label="Toggle navigation" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+
+        <!-- Backdrop overlay for mobile drawer -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Sidebar navigation -->
+        <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="sidebar__inner">
+                <div class="sidebar__brand">
+                    <span class="brand-mark">K</span>
+                    Khoj<span style="font-weight:300;">Setu</span>
+                </div>
+
+                <nav class="sidebar__nav">
+                    <a href="{{ url_for('home') }}" class="sidebar__nav-link {% if request.endpoint == 'home' %}sidebar__nav-link--active{% endif %}">
+                        <span class="sidebar__nav-link__icon">◆</span> Home
+                    </a>
+                    <a href="{{ url_for('reports') }}" class="sidebar__nav-link {% if request.endpoint == 'reports' %}sidebar__nav-link--active{% endif %}">
+                        <span class="sidebar__nav-link__icon">◆</span> Reports
+                    </a>
+                    {% if session.get("user_id") %}
+                        <a href="{{ url_for('my_reports') }}" class="sidebar__nav-link {% if request.endpoint == 'my_reports' %}sidebar__nav-link--active{% endif %}">
+                            <span class="sidebar__nav-link__icon">◆</span> My Reports
+                        </a>
+                        <a href="{{ url_for('notifications') }}" class="sidebar__nav-link {% if request.endpoint == 'notifications' %}sidebar__nav-link--active{% endif %}">
+                            <span class="sidebar__nav-link__icon">◆</span> Notifications
+                        </a>
+                    {% endif %}
+                </nav>
+
+                <div class="sidebar__spacer"></div>
+
+                <div class="sidebar__user">
+                    {% if session.get("user_id") %}
+                        <span class="sidebar__user-identity">{{ session.get("username", "Account") }}</span>
+                        <a href="{{ url_for('logout') }}" class="sidebar__nav-link" style="font-size:var(--fs-xs);padding:var(--space-2) var(--space-4);background:var(--color-gray-100);color:var(--color-gray-600);">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="sidebar__nav-link" style="font-size:var(--fs-xs);padding:var(--space-2) var(--space-4);">Login</a>
+                        <a href="{{ url_for('register') }}" class="sidebar__nav-link" style="font-size:var(--fs-xs);padding:var(--space-2) var(--space-4);background:var(--color-black);color:var(--color-white);">Get Started</a>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+
+        <!-- App body: topbar + main content -->
+        <div class="app-body">
+            <header class="topbar">
+                <div class="topbar__left">
+                    <h1 class="topbar__title">{% block page_title %}KhojSetu{% endblock %}</h1>
+                </div>
+
+                <div class="topbar__right">
+                    {% if session.get("user_id") %}
+                        <a href="{{ url_for('notifications') }}" class="topbar__icon nav-badge" aria-label="Notifications" title="Notifications">
+                            ♧
+                            {% if unread_notification_count > 0 %}<span class="topbar__badge"></span>{% endif %}
+                        </a>
+                        <a href="{{ url_for('my_reports') }}" class="topbar__btn topbar__btn--ghost">My Reports</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="topbar__btn topbar__btn--ghost">Login</a>
+                        <a href="{{ url_for('register') }}" class="topbar__btn topbar__btn--primary">Get Started</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}
+                    <div class="flash flash--success reveal" role="alert">
+                        <span>{{ message }}</span>
+                        <button class="flash__close" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endwith %}
+
+            <main class="page-main reveal">
+                {% block content %}{% endblock %}
+            </main>
+
+            {% block footer %}
+                <footer class="reveal">
+                    <div class="container">
+                        <div class="footer-grid">
+                            <div>
+                                <div class="footer-brand">Khoj<span style="color:var(--color-gray-600);">Setu</span></div>
+                                <p style="color:var(--color-gray-600);font-size:var(--fs-sm);margin-top:var(--space-4);max-width:260px;">Reuniting belongings with their owners — one report at a time.</p>
+                            </div>
+                            <div class="footer-links">
+                                <a href="{{ url_for('home') }}">Home</a>
+                                <a href="{{ url_for('reports') }}">Reports</a>
+                                {% if session.get("user_id") %}
+                                    <a href="{{ url_for('my_reports') }}">My Reports</a>
+                                    <a href="{{ url_for('notifications') }}">Notifications</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="footer-bottom">
+                            <span class="footer-copy">&copy; 2026 KhojSetu. All rights reserved.</span>
+                        </div>
+                    </div>
+                </footer>
+            {% endblock %}
+        </div>
+
+    </div>
+
+    <!-- Scroll progress indicator -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
